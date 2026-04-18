@@ -19,7 +19,8 @@
     "baseUrl": ".",
     "paths": {
       "@assets/*": ["src/assets/*"],
-      "stepscreen/*": ["steps-project-slot/*"]
+      "slider-sidebar/*": ["node_modules/slider-sidebar/*"],
+      "stepscreen/*": ["node_modules/stepscreen/*"]
     },
 
     /* Linting */
@@ -30,11 +31,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": [
-    "src",
-    "luna-sidebar/**/*.js",
-    "luna-sidebar/**/*.jsx",
-    "steps-project-slot/**/*.ts",
-    "steps-project-slot/**/*.tsx"
-  ]
+  "include": ["src"]
 }

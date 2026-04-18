@@ -12,6 +12,8 @@
   "dependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "slider-sidebar": "github:AceConcept/waypoint-sidebar#main",
+    "stepscreen": "github:AceConcept/steps-project-slot#main",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

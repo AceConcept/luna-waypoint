@@ -5,8 +5,8 @@ import react from '@vitejs/plugin-react'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-/** Git submodule `steps-project-slot` — same pattern as `luna-sidebar` (pinned commit, not npm). */
-const stepsProjectSlotRoot = path.resolve(__dirname, 'steps-project-slot')
+/** Same package as `stepscreen` dep — submodule optional for local dev only */
+const stepscreenPkgRoot = path.resolve(__dirname, 'node_modules/stepscreen')
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -14,12 +14,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@assets': path.resolve(__dirname, 'src/assets'),
-      stepscreen: stepsProjectSlotRoot,
+      stepscreen: stepscreenPkgRoot,
     },
   },
   server: {
     fs: {
-      allow: [path.resolve(__dirname, '..'), stepsProjectSlotRoot],
+      allow: [path.resolve(__dirname, '..'), stepscreenPkgRoot],
     },
   },
 })
