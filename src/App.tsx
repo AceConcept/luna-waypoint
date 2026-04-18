@@ -1,7 +1,6 @@
 import { LunaSidebar } from '../luna-sidebar/src/luna-sidebar/index.js'
 import { LunaChrome } from './luna/LunaChrome'
-import StepsScreen from 'stepscreen/src/App.tsx'
-import 'stepscreen/src/App.css'
+import WaypointStepsScreen from './steps/WaypointStepsScreen'
 import { FLOW_SIDEBAR_ITEMS } from './flowSidebarItems'
 import { useFlowStep, useFlowStore } from './store/flowStore'
 import './App.css'
@@ -31,12 +30,12 @@ function App() {
             const hit = FLOW_SIDEBAR_ITEMS.find((item) => item.id === id)
             if (hit) goToStepById(hit.id)
           }}
-          railLabel="FLOW"
+          railLabel="WAYPOINT GUIDE"
         />
       )}
     >
       <div className="luna-stage luna-stage--fill">
-        <StepsScreen key={stepIndex} />
+        <WaypointStepsScreen key={stepIndex} />
       </div>
     </LunaChrome>
   )

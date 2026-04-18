@@ -1,20 +1,20 @@
 import { create } from 'zustand'
+import { STEP_DESCRIPTIONS } from '../stepDescriptions'
 
 /** Sidebar / shell step ids — one per step in `steps-project-slot` (upstream). */
 export type FlowStepId = '1' | '2' | '3' | '4' | '5' | '6'
+
+const IDS = ['1', '2', '3', '4', '5', '6'] as const satisfies readonly FlowStepId[]
 
 export const FLOW_STEPS: {
   id: FlowStepId
   title: string
   body: string
-}[] = [
-  { id: '1', title: 'Step 1', body: '' },
-  { id: '2', title: 'Step 2', body: '' },
-  { id: '3', title: 'Step 3', body: '' },
-  { id: '4', title: 'Step 4', body: '' },
-  { id: '5', title: 'Step 5', body: '' },
-  { id: '6', title: 'Step 6', body: '' },
-]
+}[] = IDS.map((id, i) => ({
+  id,
+  title: `Step ${id}`,
+  body: STEP_DESCRIPTIONS[i] ?? '',
+}))
 
 type FlowState = {
   stepIndex: number
