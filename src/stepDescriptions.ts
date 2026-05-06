@@ -3,7 +3,7 @@
  */
 
 export const STEP_DESCRIPTIONS = [
-  'Start here with a brief overview placeholder for this milestone.',
-  'Continue through the guided section with sample content placeholders.',
-  'Finish with a review-style placeholder before you ship real content.',
+  'This guided flow demonstrates the transition from the code editor to installing a new extension update.',
+  'Review your installed extensions on this page, then select Python Environments to proceed.',
+  'The Python Environments detail view is now open. Click Download to install the extension and trigger the confirmation pop-up, completing the flow.',
 ] as const

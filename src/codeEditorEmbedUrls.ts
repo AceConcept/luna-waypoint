@@ -9,8 +9,8 @@ const CODE_EDITOR_STEP_PATHS: Record<FlowStepId, string> = {
   '1': '/',
   /** Step **2** → extensions + Python row/detail (`openDetail=` handled in vendor editor). */
   '2': '/extensions?openDetail=python-environments',
-  /** Step **3** → same Python panel as step 2, via `extDetail=` (vendor editor reads this param). */
-  '3': '/extensions?extDetail=python-environments',
+  /** Step **3** → Python panel; includes both params for hosted/build compatibility. */
+  '3': '/extensions?openDetail=python-environments&extDetail=python-environments',
 }
 
 function joinOriginPath(origin: string, pathname: string): string {
