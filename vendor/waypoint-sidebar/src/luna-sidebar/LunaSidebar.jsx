@@ -245,7 +245,7 @@ const PreviewStrip = forwardRef(function PreviewStrip(
 
 PreviewStrip.displayName = "PreviewStrip";
 
-const InfoIcon = () => (
+const PlayIcon = () => (
   <svg
     className="intro-info-btn__icon"
     xmlns="http://www.w3.org/2000/svg"
@@ -258,8 +258,7 @@ const InfoIcon = () => (
     aria-hidden
   >
     <circle cx="12" cy="12" r="10" />
-    <path d="M12 16v-4" />
-    <path d="M12 8h.01" />
+    <path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor" stroke="none" />
   </svg>
 );
 
@@ -269,14 +268,8 @@ function IntroSection({
   stepNumber,
   heroImageUrl,
   onStart,
-  onInfo,
-  infoHref,
-  infoOpenInNewTab = true,
   infoTooltip,
 }) {
-  const trimmedHref =
-    typeof infoHref === "string" ? infoHref.trim() : "";
-  const isInfoLink = trimmedHref.length > 0;
   return (
     <div className="intro-section">
       <div className="intro-hero" aria-hidden="true">
@@ -306,35 +299,16 @@ function IntroSection({
           <button className="start-btn" type="button" onClick={onStart}>
             Start
           </button>
-          {isInfoLink ? (
-            <a
-              className="intro-info-btn"
-              href={trimmedHref}
-              target={infoOpenInNewTab ? "_blank" : undefined}
-              rel={infoOpenInNewTab ? "noopener noreferrer" : undefined}
-              data-luna-sidebar-part="intro-info-btn"
-              title={infoTooltip}
-              aria-label={
-                infoOpenInNewTab
-                  ? `${infoTooltip} (opens in new tab)`
-                  : infoTooltip
-              }
-              onClick={() => onInfo?.()}
-            >
-              <InfoIcon />
-            </a>
-          ) : (
-            <button
-              type="button"
-              className="intro-info-btn"
-              data-luna-sidebar-part="intro-info-btn"
-              title={infoTooltip}
-              aria-label={infoTooltip}
-              onClick={() => onInfo?.()}
-            >
-              <InfoIcon />
-            </button>
-          )}
+          <button
+            type="button"
+            className="intro-info-btn"
+            data-luna-sidebar-part="intro-info-btn"
+            title={infoTooltip}
+            aria-label={infoTooltip}
+            onClick={(event) => event.preventDefault()}
+          >
+            <PlayIcon />
+          </button>
         </div>
       </div>
     </div>
