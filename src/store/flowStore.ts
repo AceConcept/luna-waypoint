@@ -1,38 +1,41 @@
 import { create } from 'zustand'
-import { STEP_DESCRIPTIONS, STEP_TITLES } from '../stepDescriptions'
+import { STEP_DESCRIPTIONS } from '../stepDescriptions'
 
-/** Polar-sys hash routes — one sidebar step per page. */
-export type FlowStepId = 'anomaly' | 'monitor' | 'incident'
+/** Sidebar / flow step identifiers (numeric only). */
+export type FlowStepId = '1' | '2' | '3'
 
-/** Map polar-sys `#/…` segments to sidebar / store ids (handles in-app navigations between views). */
-export function polarFlowIdFromHash(hash: string): FlowStepId {
+const ALL_STEP_IDS: FlowStepId[] = ['1', '2', '3']
+
+function isFlowStepId(segment: string): segment is FlowStepId {
+  return ALL_STEP_IDS.includes(segment as FlowStepId)
+}
+
+/** Map `#/…` hash segment → flow step id (default **1**). */
+export function flowStepIdFromHash(hash: string): FlowStepId {
   const m = String(hash || '').match(/#\/([\w-]+)/)
-  const segment = m ? m[1] : 'anomaly'
-  if (segment === 'monitor' || segment === 'incident') return segment
-  return 'anomaly'
+  const segment = m ? m[1] : '1'
+  return isFlowStepId(segment) ? segment : '1'
 }
 
-export const POLAR_SYS_HASH: Record<FlowStepId, string> = {
-  anomaly: '#/anomaly',
-  monitor: '#/monitor',
-  incident: '#/incident',
+export const FLOW_STEP_HASH: Record<FlowStepId, string> = {
+  '1': '#/1',
+  '2': '#/2',
+  '3': '#/3',
 }
-
-const IDS = ['anomaly', 'incident', 'monitor'] as const satisfies readonly FlowStepId[]
 
 export const FLOW_STEPS: {
   id: FlowStepId
   title: string
   body: string
-}[] = IDS.map((id, i) => ({
+}[] = ALL_STEP_IDS.map((id, i) => ({
   id,
-  title: STEP_TITLES[i] ?? STEP_TITLES[0],
+  title: id,
   body: STEP_DESCRIPTIONS[i] ?? '',
 }))
 
 function initialStepIndexFromLocation(): number {
   if (typeof window === 'undefined') return 0
-  const id = polarFlowIdFromHash(window.location.hash || '#/')
+  const id = flowStepIdFromHash(window.location.hash || '#/')
   const index = FLOW_STEPS.findIndex((s) => s.id === id)
   return index >= 0 ? index : 0
 }

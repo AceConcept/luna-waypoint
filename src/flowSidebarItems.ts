@@ -1,5 +1,5 @@
 import type { FlowStepId } from './store/flowStore'
-import { STEP_DESCRIPTIONS, STEP_TITLES } from './stepDescriptions'
+import { STEP_DESCRIPTIONS } from './stepDescriptions'
 
 /**
  * Luna drawer + preview rail — titles, descriptions, optional **thumbUrl** / **heroImageUrl** (`public/` paths).
@@ -25,30 +25,30 @@ function placeholderImagePath(n: 1 | 2 | 3): string {
 
 export const FLOW_SIDEBAR_ITEMS: FlowSidebarItem[] = [
   {
-    id: 'anomaly',
-    label: STEP_TITLES[0],
-    step: STEP_TITLES[0],
-    title: STEP_TITLES[0],
+    id: '1',
+    label: '1',
+    step: '1',
+    title: '1',
     description: STEP_DESCRIPTIONS[0],
     swatch: '#e8e4f0',
     thumbUrl: placeholderImagePath(1),
     heroImageUrl: placeholderImagePath(1),
   },
   {
-    id: 'incident',
-    label: STEP_TITLES[1],
-    step: STEP_TITLES[1],
-    title: STEP_TITLES[1],
+    id: '2',
+    label: '2',
+    step: '2',
+    title: '2',
     description: STEP_DESCRIPTIONS[1],
     swatch: '#cab6e0',
     thumbUrl: placeholderImagePath(2),
     heroImageUrl: placeholderImagePath(2),
   },
   {
-    id: 'monitor',
-    label: STEP_TITLES[2],
-    step: STEP_TITLES[2],
-    title: STEP_TITLES[2],
+    id: '3',
+    label: '3',
+    step: '3',
+    title: '3',
     description: STEP_DESCRIPTIONS[2],
     swatch: '#dcd4ec',
     thumbUrl: placeholderImagePath(3),

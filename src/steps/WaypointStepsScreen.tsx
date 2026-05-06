@@ -1,15 +1,24 @@
-import { useEffect, useRef } from 'react'
-import { polarFlowIdFromHash, useFlowStore } from '../store/flowStore'
+import { useEffect, useMemo, useRef } from 'react'
+import { buildCodeEditorEmbedUrlForStep } from '../codeEditorEmbedUrls'
+import { flowStepIdFromHash, useFlowStore, type FlowStepId } from '../store/flowStore'
 
 const ARTBOARD_WIDTH = 2560
 const ARTBOARD_HEIGHT = 1440
 
+/** Next.js app origin (luna-code-editor); paths per step come from `codeEditorEmbedUrls`. */
+const CODE_EDITOR_ORIGIN = (import.meta.env.VITE_LUNA_CODE_EDITOR_URL ?? '').trim()
+
 type WaypointStepsScreenProps = {
   polarHash: string
+  stepId: FlowStepId
 }
 
-export default function WaypointStepsScreen({ polarHash }: WaypointStepsScreenProps) {
+export default function WaypointStepsScreen({ polarHash, stepId }: WaypointStepsScreenProps) {
   const hostRef = useRef<HTMLDivElement>(null)
+  const embedUrl = useMemo(
+    () => buildCodeEditorEmbedUrlForStep(CODE_EDITOR_ORIGIN, stepId),
+    [stepId],
+  )
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -68,7 +77,7 @@ export default function WaypointStepsScreen({ polarHash }: WaypointStepsScreenPr
 
   useEffect(() => {
     const onHashChange = () => {
-      useFlowStore.getState().goToStepById(polarFlowIdFromHash(window.location.hash))
+      useFlowStore.getState().goToStepById(flowStepIdFromHash(window.location.hash))
     }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
@@ -86,9 +95,22 @@ export default function WaypointStepsScreen({ polarHash }: WaypointStepsScreenPr
             transformOrigin: 'top left',
           }}
         >
-          <div className="stepscreen-placeholder" role="status">
-            File shows up here
-          </div>
+          {embedUrl ? (
+            <iframe
+              key={stepId}
+              title="Luna code editor"
+              className="stepscreen-embed"
+              src={embedUrl}
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          ) : (
+            <div className="stepscreen-placeholder" role="status">
+              Set <code className="stepscreen-placeholder__code">VITE_LUNA_CODE_EDITOR_URL</code> and run the{' '}
+              <span className="stepscreen-placeholder__mono">luna-code-editor</span> app (Next.js) on that origin to
+              embed it.
+            </div>
+          )}
         </div>
       </div>
     </div>

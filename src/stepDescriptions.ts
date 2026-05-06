@@ -1,9 +1,6 @@
 /**
- * Sidebar titles + body copy — ordered for flow IDs: anomaly, incident, monitor.
- * (IDs stay wired to URL hashes; labels here are generic for the shell.)
+ * Sidebar body copy — ordered for flow step IDs **1**, **2**, **3** (see `FLOW_SIDEBAR_ITEMS`).
  */
-
-export const STEP_TITLES = ['Step one', 'Step two', 'Step three'] as const
 
 export const STEP_DESCRIPTIONS = [
   'Start here with a brief overview placeholder for this milestone.',

@@ -282,8 +282,21 @@
 /* Stage artboard (placeholder or future embed): Inter stack + inherits */
 .luna-chrome .luna-stage .viewport,
 .luna-chrome .luna-stage .artboard,
-.luna-chrome .luna-stage .artboard .stepscreen-placeholder {
+.luna-chrome .luna-stage .artboard .stepscreen-placeholder,
+.luna-chrome .luna-stage .artboard .stepscreen-placeholder__code {
   font-family: Inter, system-ui, sans-serif;
+}
+
+.luna-chrome .luna-stage .artboard .stepscreen-embed {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: block;
+  background: #212121;
 }
 
 .luna-chrome .luna-stage .artboard .stepscreen-placeholder {
@@ -292,14 +305,30 @@
   height: 100%;
   min-height: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  gap: 0.35em;
+  padding: 1.5rem;
   margin: 0;
+  text-align: center;
   background: #5c5c5c;
   color: #e8e8e8;
-  font-size: 2rem;
+  font-size: 1.125rem;
   font-weight: 500;
   letter-spacing: 0.02em;
+  line-height: 1.45;
+}
+
+.luna-chrome .luna-stage .artboard .stepscreen-placeholder__code {
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 0.95em;
+}
+
+.luna-chrome .luna-stage .artboard .stepscreen-placeholder__mono {
+  font-family: ui-monospace, monospace;
 }
 
 .luna-chrome .luna-stage .monitor-page,
