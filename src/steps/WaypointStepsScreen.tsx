@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { buildCodeEditorEmbedUrlForStep } from '../codeEditorEmbedUrls'
 import { flowStepIdFromHash, useFlowStore, type FlowStepId } from '../store/flowStore'
 
@@ -16,10 +16,14 @@ type WaypointStepsScreenProps = {
 
 export default function WaypointStepsScreen({ polarHash, stepId }: WaypointStepsScreenProps) {
   const hostRef = useRef<HTMLDivElement>(null)
+  const [embedStatus, setEmbedStatus] = useState<'idle' | 'loaded' | 'failed'>('idle')
+  const [reloadKey, setReloadKey] = useState(0)
   const embedUrl = useMemo(
     () => buildCodeEditorEmbedUrlForStep(CODE_EDITOR_ORIGIN, stepId),
     [stepId],
   )
+  const timedOutRef = useRef(false)
+  const loadTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -33,9 +37,11 @@ export default function WaypointStepsScreen({ polarHash, stepId }: WaypointSteps
     if (!host) return
 
     let rafId = 0
+    let lastAppliedScale = -1
     const scheduleScale = () => {
       if (rafId !== 0) cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() => {
+        rafId = 0
         const frame = host.querySelector<HTMLElement>('#scale-frame')
         const board = host.querySelector<HTMLElement>('#artboard')
         if (!frame || !board) return
@@ -45,6 +51,8 @@ export default function WaypointStepsScreen({ polarHash, stepId }: WaypointSteps
         if (width <= 0 || height <= 0) return
 
         const scale = Math.min(width / ARTBOARD_WIDTH, height / ARTBOARD_HEIGHT)
+        if (Math.abs(scale - lastAppliedScale) < 1e-6) return
+        lastAppliedScale = scale
         board.style.transform = `scale(${scale})`
         frame.style.width = `${Math.ceil(ARTBOARD_WIDTH * scale)}px`
         frame.style.height = `${Math.ceil(ARTBOARD_HEIGHT * scale)}px`
@@ -58,22 +66,61 @@ export default function WaypointStepsScreen({ polarHash, stepId }: WaypointSteps
     window.addEventListener('resize', scheduleScale)
     window.addEventListener('hashchange', scheduleScale)
 
-    const frame = host.querySelector<HTMLElement>('#scale-frame')
-    const board = host.querySelector<HTMLElement>('#artboard')
-    const mo =
-      frame && board
-        ? new MutationObserver(scheduleScale)
-        : null
-    if (frame && mo) mo.observe(frame, { attributes: true, attributeFilter: ['style'] })
-    if (board && mo) mo.observe(board, { attributes: true, attributeFilter: ['style'] })
-
     return () => {
       if (rafId !== 0) cancelAnimationFrame(rafId)
       ro.disconnect()
-      mo?.disconnect()
       window.removeEventListener('resize', scheduleScale)
       window.removeEventListener('hashchange', scheduleScale)
     }
+  }, [])
+
+  useEffect(() => {
+    setEmbedStatus('idle')
+    timedOutRef.current = false
+    if (!embedUrl) return
+    if (loadTimeoutRef.current !== null) {
+      window.clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = null
+    }
+    loadTimeoutRef.current = window.setTimeout(() => {
+      if (timedOutRef.current) return
+      timedOutRef.current = true
+      setEmbedStatus('failed')
+    }, 10000)
+    return () => {
+      if (loadTimeoutRef.current !== null) {
+        window.clearTimeout(loadTimeoutRef.current)
+        loadTimeoutRef.current = null
+      }
+    }
+  }, [embedUrl, reloadKey])
+
+  const retryEmbed = useCallback(() => {
+    timedOutRef.current = false
+    if (loadTimeoutRef.current !== null) {
+      window.clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = null
+    }
+    setEmbedStatus('idle')
+    setReloadKey((v) => v + 1)
+  }, [])
+
+  const handleEmbedLoad = useCallback(() => {
+    timedOutRef.current = true
+    if (loadTimeoutRef.current !== null) {
+      window.clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = null
+    }
+    setEmbedStatus('loaded')
+  }, [])
+
+  const handleEmbedError = useCallback(() => {
+    timedOutRef.current = true
+    if (loadTimeoutRef.current !== null) {
+      window.clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = null
+    }
+    setEmbedStatus('failed')
   }, [])
 
   useEffect(() => {
@@ -97,14 +144,36 @@ export default function WaypointStepsScreen({ polarHash, stepId }: WaypointSteps
           }}
         >
           {embedUrl ? (
-            <iframe
-              key={stepId}
-              title="Luna code editor"
-              className="stepscreen-embed"
-              src={embedUrl}
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-              referrerPolicy="strict-origin-when-cross-origin"
-            />
+            <>
+              <iframe
+                key={`${stepId}-${reloadKey}`}
+                title="Luna code editor"
+                className="stepscreen-embed"
+                src={embedUrl}
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                referrerPolicy="strict-origin-when-cross-origin"
+                onLoad={handleEmbedLoad}
+                onError={handleEmbedError}
+              />
+              {embedStatus === 'failed' ? (
+                <div className="stepscreen-placeholder" role="status">
+                  The embedded editor is unavailable right now.{' '}
+                  <button type="button" className="stepscreen-placeholder__action" onClick={retryEmbed}>
+                    Retry
+                  </button>{' '}
+                  or{' '}
+                  <a
+                    className="stepscreen-placeholder__action"
+                    href={embedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    open directly
+                  </a>
+                  .
+                </div>
+              ) : null}
+            </>
           ) : (
             <div className="stepscreen-placeholder" role="status">
               Set <code className="stepscreen-placeholder__code">VITE_LUNA_CODE_EDITOR_URL</code> and run the{' '}

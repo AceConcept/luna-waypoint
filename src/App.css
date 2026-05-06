@@ -331,6 +331,17 @@
   font-family: ui-monospace, monospace;
 }
 
+.luna-chrome .luna-stage .artboard .stepscreen-placeholder__action {
+  border: 0;
+  background: transparent;
+  color: #cdd8ff;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
 .luna-chrome .luna-stage .monitor-page,
 .luna-chrome .luna-stage .incident-page {
   font-family: var(--font);
