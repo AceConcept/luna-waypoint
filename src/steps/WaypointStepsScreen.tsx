@@ -16,6 +16,7 @@ type WaypointStepsScreenProps = {
 
 export default function WaypointStepsScreen({ polarHash, stepId }: WaypointStepsScreenProps) {
   const hostRef = useRef<HTMLDivElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const [embedStatus, setEmbedStatus] = useState<'idle' | 'loaded' | 'failed'>('idle')
   const [reloadKey, setReloadKey] = useState(0)
   const embedUrl = useMemo(
@@ -102,8 +103,15 @@ export default function WaypointStepsScreen({ polarHash, stepId }: WaypointSteps
       loadTimeoutRef.current = null
     }
     setEmbedStatus('idle')
+    /** Reload in-place: keep the same iframe element so the browser reuses its
+     * connection/JA4 fingerprint state instead of opening a fresh handshake
+     * (which is what some Vercel firewall heuristics 403 intermittently). */
+    const el = iframeRef.current
+    if (el && embedUrl) {
+      el.src = embedUrl
+    }
     setReloadKey((v) => v + 1)
-  }, [])
+  }, [embedUrl])
 
   const handleEmbedLoad = useCallback(() => {
     timedOutRef.current = true
@@ -146,7 +154,7 @@ export default function WaypointStepsScreen({ polarHash, stepId }: WaypointSteps
           {embedUrl ? (
             <>
               <iframe
-                key={`${stepId}-${reloadKey}`}
+                ref={iframeRef}
                 title="Luna code editor"
                 className="stepscreen-embed"
                 src={embedUrl}
