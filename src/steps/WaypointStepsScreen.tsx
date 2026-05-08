@@ -5,8 +5,8 @@ import { flowStepIdFromHash, useFlowStore, type FlowStepId } from '../store/flow
 const ARTBOARD_WIDTH = 2560
 const ARTBOARD_HEIGHT = 1440
 
-/** Next.js app origin (luna-code-editor); paths per step come from `codeEditorEmbedUrls`. */
-const DEFAULT_CODE_EDITOR_ORIGIN = 'https://luna-code-editor.vercel.app'
+/** Hosted luna-code-editor origin (Cloudflare Workers); paths per step come from `codeEditorEmbedUrls`. */
+const DEFAULT_CODE_EDITOR_ORIGIN = 'https://luna-code-editor.guildconcept.workers.dev'
 const CODE_EDITOR_ORIGIN = (import.meta.env.VITE_LUNA_CODE_EDITOR_URL ?? DEFAULT_CODE_EDITOR_ORIGIN).trim()
 
 type WaypointStepsScreenProps = {
