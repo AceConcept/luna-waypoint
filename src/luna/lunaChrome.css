@@ -39,8 +39,9 @@
   /* Cross-size comes from .luna-center-column height (scaled px), not the design-surface layout box */
   min-height: var(--luna-canvas-row-min-h, 1px);
   overflow: hidden;
-  /* Solid fallback that shows before the looping <video> below paints. */
-  background: #1a1a1a;
+  /* Fallback + base behind the looping <video>; gutters show this where video doesn’t cover. */
+  background-color: #dbdedf;
+  background-image: linear-gradient(180deg, #dbdedf 0%, #ffffff 100%);
 }
 
 /*
