@@ -13,6 +13,13 @@ import './lunaChrome.css'
 /** Center slot footprint vs contain scale (~10% shorter; width scales same factor → same aspect ratio). */
 const LUNA_CENTER_SLOT = 0.9
 
+/** How many copies of the looping bg video to tile across `.luna-canvas-row`.
+ *  Each tile's display size is `--luna-bg-tile-w × --luna-bg-tile-h × --luna-scale`,
+ *  so this needs to be ≥ ceil(maxViewportWidth / (tileWidth × scale)). 5 tiles
+ *  at the default 120rem (1920px) tile width covers up to ~9600px viewports.
+ *  Bump this if you target wider monitors. */
+const LUNA_BG_TILE_COUNT = 5
+
 export type LunaChromeSidebarControls = {
   expanded: boolean
   onExpandedChange: (next: boolean) => void
@@ -90,6 +97,20 @@ export function LunaChrome({
             <div
               className={`luna-canvas-row${expanded ? ' luna-canvas-row--drawer-open' : ''}`}
             >
+              <div className="luna-canvas-bg" aria-hidden="true">
+                {Array.from({ length: LUNA_BG_TILE_COUNT }, (_, i) => (
+                  <video
+                    key={i}
+                    className="luna-canvas-bg-video"
+                    src="/bg-img/hex-bg-loop-light.webm"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="auto"
+                  />
+                ))}
+              </div>
               {expanded ? (
                 <button
                   type="button"

@@ -1,0 +1,215 @@
+================================================================================
+CANVAS BG VIDEO — TILED + RES-AWARE BACKGROUND (PORTABLE GUIDE)
+================================================================================
+
+What this is
+------------
+Replaces the static `bg-img3.jpg` repeat pattern behind `.luna-canvas-row`
+with a *looping webm* (`/bg-img/hex-bg-loop-light.webm`) that:
+
+  1. Scales together with `--luna-scale` (so each tile is the same physical
+     size as the rest of the UI — fonts, controls, sidebar, etc.).
+  2. Tiles infinitely across the row by rendering N copies of the same
+     `<video>` side-by-side. As the gutters grow on wider viewports, more
+     tiles become visible — same pattern, no stretching.
+  3. Honors `prefers-reduced-motion`: hides the band and falls back to the
+     row's solid color.
+
+Why this approach (vs. CSS background)
+--------------------------------------
+- HTML `<video>` cannot be used as a CSS `background-image`, and there's no
+  native `background-repeat: video` equivalent.
+- `object-fit: cover` on a single `<video>` made the pattern stretch (hexes
+  inflate on wide screens). `object-fit: none` kept hexes at intrinsic px,
+  but didn't scale with the rest of the UI rems.
+- Tiling N `<video>` elements that are *each* sized in design rems × scale
+  gives both: pattern matches UI scale, and gutters fill seamlessly.
+
+Tradeoff: each `<video>` is its own decoder. Drift between tiles is possible
+on long, fast-moving loops; on subtle/slow loops it's invisible. If you ever
+see seams animate independently, add a `currentTime` sync `useEffect` (sketch
+at the bottom of this file).
+
+
+Files changed
+-------------
+1) src/luna/LunaChrome.tsx
+2) src/luna/lunaChrome.css
+
+No changes inside the vendored `waypoint-sidebar` package. The only public
+asset added is the webm at `public/bg-img/hex-bg-loop-light.webm` (also
+hex-bg-loop-dark.webm if you want a dark variant — switch the `src`).
+
+
+--------------------------------------------------------------------------------
+1. LunaChrome.tsx — render N tiled <video> elements
+--------------------------------------------------------------------------------
+
+Add a tile-count constant near the top:
+
+  const LUNA_BG_TILE_COUNT = 5
+  /*
+    Each tile's display size is
+      --luna-bg-tile-w × --luna-bg-tile-h × --luna-scale
+    so this needs to be ≥ ceil(maxViewportWidth / (tileWidth × scale)). 5 tiles
+    at the default 120rem (1920px) tile width covers viewports up to ~9600px.
+    Bump if you target wider monitors.
+  */
+
+Inside `.luna-canvas-row`, *before* the optional scrim button, render:
+
+  <div className="luna-canvas-bg" aria-hidden="true">
+    {Array.from({ length: LUNA_BG_TILE_COUNT }, (_, i) => (
+      <video
+        key={i}
+        className="luna-canvas-bg-video"
+        src="/bg-img/hex-bg-loop-light.webm"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+      />
+    ))}
+  </div>
+
+Notes:
+  - `muted + playsInline` are *required* for autoplay in Chrome / Safari.
+  - `aria-hidden="true"` since this is decorative.
+  - The wrapper `.luna-canvas-bg` is what makes the tiles a flex row;
+    each `<video>` flexes 0 0 auto so they sit side-by-side at their
+    scaled width.
+
+
+--------------------------------------------------------------------------------
+2. lunaChrome.css — band, tile sizing, reduced motion
+--------------------------------------------------------------------------------
+
+Replace the previous `.luna-canvas-row` background-image rule(s) with a solid
+fallback:
+
+  .luna-canvas-row {
+    /* …existing properties… */
+    /* Solid fallback shown before the looping <video> below paints. */
+    background: #1a1a1a;
+  }
+
+Add band + tile rules. Place these after `.luna-canvas-row`:
+
+  /*
+    Background video band: a flex row of N copies of the looping webm laid out
+    horizontally and centered, so the pattern tiles infinitely across the
+    gutters on wide viewports while each tile is sized by `--luna-scale` (i.e.,
+    it scales with the rest of the UI rems instead of stretching to fit). The
+    band is absolute-positioned so it doesn't take a layout slot. Stacking:
+    design surface = 40, sidebar shell = 45, scrim = 43 — all above this.
+    `pointer-events: none` keeps clicks falling through.
+  */
+  .luna-canvas-row > .luna-canvas-bg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  /*
+    Tile size in design rems × `--luna-scale`. Defaults assume the source video
+    is 1920×1080 (16:9) at design scale; override `--luna-bg-tile-w` /
+    `--luna-bg-tile-h` on `.luna-canvas-row` (or higher) if your video has a
+    different intrinsic size, otherwise the pattern will stretch.
+  */
+  .luna-canvas-row > .luna-canvas-bg > .luna-canvas-bg-video {
+    flex: 0 0 auto;
+    width: calc(var(--luna-bg-tile-w, 120rem) * var(--luna-scale, 1));
+    height: calc(var(--luna-bg-tile-h, 67.5rem) * var(--luna-scale, 1));
+    display: block;
+    object-fit: fill;
+  }
+
+  /* prefers-reduced-motion: hide the looping video, keep the solid fallback. */
+  @media (prefers-reduced-motion: reduce) {
+    .luna-canvas-row > .luna-canvas-bg {
+      display: none;
+    }
+  }
+
+Also — make the gutters transparent so the band shows through them:
+
+  .luna-space-left,
+  .luna-space-right {
+    /* …existing properties… */
+    /* Transparent so the .luna-canvas-row video shows through both gutters. */
+    background: transparent;
+  }
+
+
+Variables this depends on
+-------------------------
+  --luna-scale        set on `.luna-root` by LunaChrome at runtime (canvas-fit scale)
+  --luna-bg-tile-w    optional override; default 120rem  (1920 design px)
+  --luna-bg-tile-h    optional override; default 67.5rem (1080 design px)
+
+
+How to verify
+-------------
+1. Open the app, resize the window. Hex pattern size should track UI scale,
+   *not* viewport width — i.e. as the window grows, both UI rems and bg
+   pattern grow proportionally.
+2. On wide viewports the gutters fill with extra copies of the same loop
+   instead of empty space or stretched pattern.
+3. With OS-level reduced motion enabled (Windows: Settings → Accessibility →
+   Visual effects → Animation effects = Off), the band is hidden and you see
+   the dark `#1a1a1a` fallback.
+4. Clicks on the gutters / center surface still hit their handlers — the band
+   has `pointer-events: none`.
+
+
+Common adjustments / gotchas
+----------------------------
+- If your video isn't 1920×1080, override the tile vars on `.luna-canvas-row`
+  so the design size matches:
+    .luna-canvas-row {
+      --luna-bg-tile-w: 160rem;   /* 2560 design px */
+      --luna-bg-tile-h: 90rem;    /* 1440 design px */
+    }
+
+- Switching variants: change the `src` on the <video> (currently
+  `/bg-img/hex-bg-loop-light.webm`; sibling `hex-bg-loop-dark.webm` ships).
+
+- Need wider viewport coverage? Bump `LUNA_BG_TILE_COUNT`.
+
+- If you see drift between tiles (frames out of sync), add a sync effect:
+
+    useEffect(() => {
+      const vids = bandRef.current?.querySelectorAll<HTMLVideoElement>('video') ?? []
+      if (vids.length < 2) return
+      const id = window.setInterval(() => {
+        const t = vids[0].currentTime
+        vids.forEach((v, i) => {
+          if (i === 0) return
+          if (Math.abs(v.currentTime - t) > 0.05) v.currentTime = t
+        })
+      }, 500)
+      return () => window.clearInterval(id)
+    }, [])
+
+  (Add `bandRef = useRef<HTMLDivElement>(null)` to the wrapper div.)
+
+- Bundle size: a single webm is downloaded once and cached, but every visit
+  pays the bytes. Add a `poster="/bg-img/hex-bg-loop-poster.jpg"` to the
+  <video> if you want a still to show before the bytes stream in.
+
+- Safari fallback: if iOS Safari ever fails to autoplay the webm, add an
+  H.264 MP4 source as a sibling <source> ladder.
+
+
+Why this works (one-liner)
+--------------------------
+Each tile is sized in design rems × `--luna-scale` and laid out in a flex row
+that fills the canvas row, so the pattern tracks the UI scale exactly and
+extends seamlessly across however much gutter the viewport happens to have.

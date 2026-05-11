@@ -39,7 +39,50 @@
   /* Cross-size comes from .luna-center-column height (scaled px), not the design-surface layout box */
   min-height: var(--luna-canvas-row-min-h, 1px);
   overflow: hidden;
-  background: url('/bg-img/bg-img3.jpg') repeat 0 0;
+  /* Solid fallback that shows before the looping <video> below paints. */
+  background: #1a1a1a;
+}
+
+/*
+  Background video band: a flex row of N copies of the looping webm laid out
+  horizontally and centered, so the pattern tiles infinitely across the gutters
+  on wide viewports while each tile is sized by `--luna-scale` (i.e., it scales
+  with the rest of the UI rems instead of stretching to fit). The band is
+  absolute-positioned so it doesn't take a layout slot. Stacking: design
+  surface = 40, sidebar shell = 45, scrim = 43 — all above this.
+  `pointer-events: none` keeps clicks falling through.
+*/
+.luna-canvas-row > .luna-canvas-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/*
+  Tile size in design rems × `--luna-scale`. Defaults below assume the source
+  video is 1920×1080 (16:9) at design scale; override `--luna-bg-tile-w` /
+  `--luna-bg-tile-h` on `.luna-canvas-row` (or higher) if your video has a
+  different intrinsic size, otherwise the pattern will stretch.
+*/
+.luna-canvas-row > .luna-canvas-bg > .luna-canvas-bg-video {
+  flex: 0 0 auto;
+  width: calc(var(--luna-bg-tile-w, 120rem) * var(--luna-scale, 1));
+  height: calc(var(--luna-bg-tile-h, 67.5rem) * var(--luna-scale, 1));
+  display: block;
+  object-fit: fill;
+}
+
+/* Respect prefers-reduced-motion: hide the looping video, keep solid fallback. */
+@media (prefers-reduced-motion: reduce) {
+  .luna-canvas-row > .luna-canvas-bg {
+    display: none;
+  }
 }
 
 /* Allow fixed scrim to cover viewport (not clipped by row overflow) */
@@ -71,15 +114,8 @@
   flex: 1 1 0;
   min-width: 0;
   align-self: stretch;
-  background: url('/bg-img/bg-img3.jpg') repeat 0 0;
-}
-
-.luna-space-left {
-  background-color: transparent;
-}
-
-.luna-space-right {
-  background-color: transparent;
+  /* Transparent so the .luna-canvas-row video shows through both gutters. */
+  background: transparent;
 }
 
 /*
